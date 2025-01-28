@@ -3,10 +3,10 @@ import { LoginController, LogoutController, RegisterController } from "../contro
 
 const router = express.Router();
 
-router.get("/register", RegisterController);
+router.post("/register", RegisterController);
 
-router.get("/login", LoginController);
+router.post("/login", LoginController);
 
-router.get("/logout", LogoutController);
+router.post("/logout", LogoutController);
 
 export default router;

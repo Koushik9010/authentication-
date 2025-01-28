@@ -7,9 +7,8 @@ dotenv.config();
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
+//middleware
+app.use(express.json());
 
 app.use("/api/v1/auth", authRoutes);
 
