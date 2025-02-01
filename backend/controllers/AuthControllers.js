@@ -1,8 +1,12 @@
-import { sendVerificationEmail } from "../mailtrap/sendMail.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../mailtrap/sendMail.js";
 import { generateTokenAndSetCookie } from "../utils/GenerateToken.js";
 import { User } from "./../models/UserModel.js";
 import bcrypt from "bcryptjs";
 
+//register controller
 export const RegisterController = async (req, res) => {
   const { email, password, name } = req.body;
 
@@ -62,10 +66,53 @@ export const RegisterController = async (req, res) => {
   }
 };
 
+//verify email controller
+export const VerifyEmailController = async (req, res) => {
+  const { code } = req.body;
+  try {
+    const user = await User.findOne({
+      verificationCode: code,
+      verificationExpiresAt: { $gt: Date.now() }, //gt= greater than
+    });
+
+    if (!user) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
+    }
+
+    user.isVerified = true;
+    user.verificationCode = undefined; //remove the verficatin code from db after the verification is complete
+    user.verificationExpiresAt = undefined;
+    await user.save();
+
+    //send welsome email
+    await sendWelcomeEmail(user.email, user.name);
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      use: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (error) {
+    console.log("Error in verify email controller", error);
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//login controller
 export const LoginController = async (req, res) => {
   res.send("LoginController");
 };
 
+//logout controller
 export const LogoutController = async (req, res) => {
   res.send("LogoutController");
 };
